@@ -4,6 +4,8 @@ import './App.css';
 import { withAuthenticator } from 'aws-amplify-react'
 import Amplify, { Auth } from 'aws-amplify';
 import aws_exports from './aws-exports';
+import GMap from './GMap';
+
 Amplify.configure(aws_exports);
 
 class App extends Component {
@@ -13,7 +15,7 @@ class App extends Component {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>
-            Edit <code>src/App.js</code> and save to reload.
+            Search your best traveling route via this App
           </p>
           <a
             className="App-link"
@@ -21,7 +23,7 @@ class App extends Component {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Learn React
+           Developed by Tianyi
           </a>
         </header>
       </div>

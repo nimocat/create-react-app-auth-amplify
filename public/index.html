@@ -19,12 +19,67 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>Place Autocomplete and Directions</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .controls {
+            margin-top: 10px;
+            border: 1px solid transparent;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            height: 32px;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #origin-input,
+        #destination-input {
+            background-color: #fff;
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 300;
+            margin-left: 12px;
+            padding: 0 11px 0 13px;
+            text-overflow: ellipsis;
+            width: 200px;
+        }
+
+        #origin-input:focus,
+        #destination-input:focus {
+            border-color: #4d90fe;
+        }
+
+        #mode-selector {
+            color: #fff;
+            background-color: #4d90fe;
+            margin-left: 12px;
+            padding: 5px 11px 0px 11px;
+        }
+
+        #mode-selector label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+    </style>
   </head>
   <body>
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
     <div id="root"></div>
     <!--
       This HTML file is a template.
@@ -36,5 +91,279 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <div style="display: none">
+        <input id="origin-input" class="controls" type="text" placeholder="Enter an origin location">
+
+        <input id="destination-input" class="controls" type="text" placeholder="Enter a destination location">
+
+        <div id="mode-selector" class="controls">
+            <input type="radio" name="type" id="changemode-walking" checked="checked">
+            <label for="changemode-walking">Bicycling</label>
+
+            <input type="radio" name="type" id="changemode-transit">
+            <label for="changemode-transit">Transit</label>
+
+            <input type="radio" name="type" id="changemode-driving">
+            <label for="changemode-driving">Driving</label>
+
+            <!-- <input type="radio" name="type" id="changemode-bicycling" checked="checked">
+            <label for="changemode-bicycling">Bicycling</label> -->
+        </div>
+    </div>
+    <script src="https://www.google.com/jsapi"></script>
+
+    <div id="map"></div>
+    <div id="elevation_chart"></div>
+
+    <script>
+        // This example requires the Places library. Include the libraries=places
+        // parameter when you first load the API. For example:
+        // <script
+        // src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+        google.load('visualization', '1', { packages: ['columnchart'] });
+
+        function initMap() {
+            var yuweishi = { lat: 1.2874, lng: 103.8535 }
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: yuweishi,
+                zoom: 13,
+                styles: [
+                    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+                    {
+                        featureType: 'administrative.locality',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#d59563' }]
+                    },
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#d59563' }]
+                    },
+                    {
+                        featureType: 'poi.park',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#263c3f' }]
+                    },
+                    {
+                        featureType: 'poi.park',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#6b9a76' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#38414e' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#212a37' }]
+                    },
+                    {
+                        featureType: 'road',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#9ca5b3' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#746855' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry.stroke',
+                        stylers: [{ color: '#1f2835' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#f3d19c' }]
+                    },
+                    {
+                        featureType: 'transit',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#2f3948' }]
+                    },
+                    {
+                        featureType: 'transit.station',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#d59563' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#17263c' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'labels.text.fill',
+                        stylers: [{ color: '#515c6d' }]
+                    },
+                    {
+                        featureType: 'water',
+                        elementType: 'labels.text.stroke',
+                        stylers: [{ color: '#17263c' }]
+                    }
+                ]
+            });
+
+            var elevator = new google.maps.ElevationService;
+
+            new AutocompleteDirectionsHandler(map);
+        }
+
+        /**
+         * @constructor
+         */
+
+        function displayPathElevation(path, elevator, map) {
+            // Display a polyline of the elevation path.
+            new google.maps.Polyline({
+                path: path,
+                strokeColor: '#0000CC',
+                strokeOpacity: 0.4,
+                map: map
+            });
+
+            // Create a PathElevationRequest object using this array.
+            // Ask for 256 samples along that path.
+            // Initiate the path request.
+            elevator.getElevationAlongPath({
+                'path': path,
+                'samples': 256
+            }, plotElevation);
+        }
+
+        function plotElevation(elevations, status) {
+            var chartDiv = document.getElementById('elevation_chart');
+            if (status !== 'OK') {
+                // Show the error code inside the chartDiv.
+                chartDiv.innerHTML = 'Cannot show elevation: request failed because ' +
+                    status;
+                return;
+            }
+            // Create a new chart in the elevation_chart DIV.
+            var chart = new google.visualization.ColumnChart(chartDiv);
+
+            // Extract the data from which to populate the chart.
+            // Because the samples are equidistant, the 'Sample'
+            // column here does double duty as distance along the
+            // X axis.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Sample');
+            data.addColumn('number', 'Elevation');
+            for (var i = 0; i < elevations.length; i++) {
+                data.addRow(['', elevations[i].elevation]);
+            }
+
+            // Draw the chart using the data within its DIV.
+            chart.draw(data, {
+                height: 150,
+                legend: 'none',
+                titleY: 'Elevation (m)'
+            });
+        }
+
+        function AutocompleteDirectionsHandler(map) {
+            this.map = map;
+            this.originPlaceId = null;
+            this.destinationPlaceId = null;
+            this.travelMode = 'WALKING';
+            this.directionsService = new google.maps.DirectionsService;
+            this.directionsRenderer = new google.maps.DirectionsRenderer;
+            this.directionsRenderer.setMap(map);
+
+            var originInput = document.getElementById('origin-input');
+            var destinationInput = document.getElementById('destination-input');
+            var modeSelector = document.getElementById('mode-selector');
+
+            var originAutocomplete = new google.maps.places.Autocomplete(originInput);
+            // Specify just the place data fields that you need.
+            originAutocomplete.setFields(['place_id']);
+
+            var destinationAutocomplete =
+                new google.maps.places.Autocomplete(destinationInput);
+            // Specify just the place data fields that you need.
+            destinationAutocomplete.setFields(['place_id']);
+
+            this.setupClickListener('changemode-walking', 'WALKING');
+            this.setupClickListener('changemode-transit', 'TRANSIT');
+            this.setupClickListener('changemode-driving', 'DRIVING');
+            // this.setupClickListener('changemode-bicycling', 'BICYCLING');
+
+            this.setupPlaceChangedListener(originAutocomplete, 'ORIG');
+            this.setupPlaceChangedListener(destinationAutocomplete, 'DEST');
+
+            this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(originInput);
+            this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(
+                destinationInput);
+            this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(modeSelector);
+        }
+
+        // Sets a listener on a radio button to change the filter type on Places
+        // Autocomplete.
+        AutocompleteDirectionsHandler.prototype.setupClickListener = function (
+            id, mode) {
+            var radioButton = document.getElementById(id);
+            var me = this;
+
+            radioButton.addEventListener('click', function () {
+                me.travelMode = mode;
+                me.route();
+            });
+        };
+
+        AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (
+            autocomplete, mode) {
+            var me = this;
+            autocomplete.bindTo('bounds', this.map);
+
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+
+                if (!place.place_id) {
+                    window.alert('Please select an option from the dropdown list.');
+                    return;
+                }
+                if (mode === 'ORIG') {
+                    me.originPlaceId = place.place_id;
+                } else {
+                    me.destinationPlaceId = place.place_id;
+                }
+                me.route();
+            });
+        };
+
+        AutocompleteDirectionsHandler.prototype.route = function () {
+            if (!this.originPlaceId || !this.destinationPlaceId) {
+                return;
+            }
+            var me = this;
+
+            this.directionsService.route(
+                {
+                    origin: { 'placeId': this.originPlaceId },
+                    destination: { 'placeId': this.destinationPlaceId },
+                    travelMode: this.travelMode
+                },
+                function (response, status) {
+                    if (status === 'OK') {
+                        var path = response.routes[0].overview_path
+                        console.log(response.routes[0].overview_path)
+                        me.directionsRenderer.setDirections(response);
+                        displayPathElevation(path, new google.maps.ElevationService, this.map)
+                    } else {
+                        window.alert('Directions request failed due to ' + status);
+                    }
+                });
+        };
+
+    </script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChyCZDvH3BNRegD384ZGRTxfaAhKmg3V8&libraries=places&callback=initMap"
+        async defer></script>
   </body>
 </html>
