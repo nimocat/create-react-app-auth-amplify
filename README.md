@@ -1,10 +1,13 @@
+# view our SaaS online
+You can just go into https://master.d1qvqglbp3ybmg.amplifyapp.com/ to see our deployed application - bicycling route application.
+
 # how to run it
-just download this repo, and run `npm install`.
-env requirements: node 10+, npm 6+
+Just download this repo, and run `npm install`.
+Environment requirements: node 10+, npm 6+
 
 After npm finished install, run `npm start`.
 
-then you can see the application running on your local machine.
+Then you can see the application running on your local machine.
 
 # how to run on SaaS
 You need to upload this repo on github, then go to AWS Amplify platform (https://aws.amazon.com/amplify/console/?nc1=h_ls).
